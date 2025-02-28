@@ -1,0 +1,33 @@
+{
+  "name": "api-documentation-summarizer",
+  "version": "1.0.0",
+  "description": "Chrome extension to summarize API documentation using AI",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "watch": "vite build --watch",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@headlessui/react": "^1.7.17",
+    "@heroicons/react": "^2.0.18",
+    "cohere-ai": "^5.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-markdown": "^9.0.1",
+    "react-syntax-highlighter": "^15.5.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.16",
+    "@types/chrome": "^0.0.254",
+    "@types/node": "^22.13.5",
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32",
+    "tailwindcss": "^3.3.6",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.7"
+  }
+}

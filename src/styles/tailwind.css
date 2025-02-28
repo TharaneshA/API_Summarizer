@@ -1,0 +1,183 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body {
+    font-family: 'Poppins', 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  body {
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', 'Inter', system-ui, -apple-system, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+  }
+}
+
+@layer utilities {
+  .w-popup {
+    width: 400px;
+  }
+
+  .h-popup {
+    height: 600px;
+  }
+
+  .scrollbar-custom {
+    scrollbar-width: thin;
+    scrollbar-color: theme('colors.gray.600') theme('colors.gray.800');
+  }
+
+  .scrollbar-custom::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-track {
+    background-color: theme('colors.gray.800');
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-thumb {
+    background-color: theme('colors.gray.600');
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-thumb:hover {
+    background-color: theme('colors.gray.500');
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-in-out;
+  }
+}
+
+@layer components {
+  .modern-card {
+    background-color: theme('colors.gray.800');
+    border: 1px solid theme('colors.gray.700');
+    padding: theme('spacing.4');
+    font-family: theme('fontFamily.poppins');
+  }
+
+  .modern-button {
+    background-image: linear-gradient(to right, theme('colors.teal.600'), theme('colors.slate.700'));
+    color: theme('colors.white');
+    border-radius: theme('borderRadius.xl');
+    padding: theme('spacing.2') theme('spacing.4');
+    font-family: theme('fontFamily.poppins');
+    font-weight: theme('fontWeight.semibold');
+    transition-property: all;
+    transition-duration: 300ms;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+  }
+
+  .modern-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background-image: linear-gradient(to right, theme('colors.teal.700'), theme('colors.slate.800'));
+    transition: all 0.3s ease-in-out;
+    z-index: -1;
+  }
+
+  .modern-button:hover::before {
+    left: 0;
+  }
+
+  .modern-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .modern-button:active {
+    transform: translateY(1px);
+  }
+
+  .modern-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px theme('colors.teal.500');
+  }
+
+  .modern-input {
+    background-color: theme('colors.gray.900');
+    border: 1px solid theme('colors.gray.700');
+    border-radius: theme('borderRadius.xl');
+    padding: theme('spacing.2') theme('spacing.4');
+    color: theme('colors.white');
+    width: 100%;
+    font-family: theme('fontFamily.poppins');
+    font-weight: theme('fontWeight.medium');
+    transition-property: all;
+    transition-duration: 200ms;
+  }
+
+  .modern-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px theme('colors.teal.500');
+  }
+
+  .prose-custom {
+    max-width: none;
+  }
+
+  .prose-custom p {
+    color: theme('colors.gray.300');
+  }
+
+  .prose-custom :is(h1, h2, h3, h4, h5, h6) {
+    color: theme('colors.white');
+  }
+
+  .prose-custom a {
+    color: theme('colors.purple.400');
+  }
+
+  .prose-custom strong {
+    color: theme('colors.white');
+  }
+
+  .prose-custom code {
+    color: theme('colors.purple.300');
+  }
+
+  .prose-custom pre {
+    background-color: theme('colors.gray.900');
+    border: 1px solid theme('colors.gray.700');
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-4px); }
+}
