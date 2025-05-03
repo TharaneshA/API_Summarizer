@@ -1,7 +1,7 @@
 # API Summarizer Chrome Extension
 
 <div align="center">
-  <img src="icons/icon128.png" alt="API Summarizer Logo" width="128" height="128">
+  <img src="./icons/icon128.png" alt="API Summarizer Logo" width="128" height="128">
   <h3>Simplify API Documentation Instantly</h3>
 </div>
 
