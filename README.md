@@ -1,7 +1,7 @@
 # API Summarizer Chrome Extension
 
 <div align="center">
-![image](https://github.com/user-attachments/assets/c8a0adcd-9825-4abd-a11f-ba71ba34e9f3)
+![image](https://github.com/user-attachments/assets/8bc4bdde-e185-45a0-93cc-3d51c6ff92cc)
 
   <h3>Simplify API Documentation Instantly</h3>
 </div>
