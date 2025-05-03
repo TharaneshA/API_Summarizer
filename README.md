@@ -1,7 +1,8 @@
 # API Summarizer Chrome Extension
 
 <div align="center">
-  <img src="./icons/icon128.png" alt="API Summarizer Logo" width="128" height="128">
+![image](https://github.com/user-attachments/assets/c8a0adcd-9825-4abd-a11f-ba71ba34e9f3)
+
   <h3>Simplify API Documentation Instantly</h3>
 </div>
 
@@ -80,6 +81,8 @@ API Summarizer is a powerful Chrome extension designed to enhance your experienc
    - Select text and generate summaries
    - Search within the documentation
    - Ask questions about the API
+![image](https://github.com/user-attachments/assets/e12e8ce2-3f8d-4b15-8741-412d8e8bb3fe)
+
 
 ## Project Structure
 
