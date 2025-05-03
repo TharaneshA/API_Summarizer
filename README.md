@@ -1,10 +1,11 @@
 # API Summarizer Chrome Extension
 
-<div align="center">
-![image](https://github.com/user-attachments/assets/8bc4bdde-e185-45a0-93cc-3d51c6ff92cc)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/TharaneshA/API_Summarizer/main/icons/icon.jpg" width="400" alt="API Summarizer Icon"/>
+</p>
 
-  <h3>Simplify API Documentation Instantly</h3>
-</div>
+<h3 align="center">Simplify API Documentation Instantly</h3>
+
 
 ## Overview
 
