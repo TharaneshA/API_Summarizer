@@ -1,7 +1,9 @@
-let HUGGINGFACE_API_KEY: string | null = null;
+import { GEMINI_API_KEY, API_CONFIG, validateApiKey } from './config';
 
-// Initialize Hugging Face API key from environment variables
-const initializeHuggingFace = async () => {
+let apiKey: string | null = null;
+
+// Initialize Gemini API key from environment variables
+const initializeGeminiAPI = async () => {
   try {
     const response = await fetch(chrome.runtime.getURL('config.env'));
     if (!response.ok) {
@@ -9,42 +11,35 @@ const initializeHuggingFace = async () => {
     }
     
     const config = await response.text();
-    const apiKeyMatch = config.match(/HUGGINGFACE_API_KEY=(.*)/);
+    const apiKeyMatch = config.match(/GEMINI_API_KEY=(.*)/);
     
     if (!apiKeyMatch || !apiKeyMatch[1]) {
       throw new Error('Invalid or missing API key in config.env');
     }
     
-    HUGGINGFACE_API_KEY = apiKeyMatch[1].trim();
-    if (!HUGGINGFACE_API_KEY) {
+    apiKey = apiKeyMatch[1].trim();
+    if (!apiKey) {
       throw new Error('API key cannot be empty');
     }
     
-    console.log('Hugging Face API initialized successfully');
+    console.log('Gemini API initialized successfully');
   } catch (error) {
-    console.error('Error initializing Hugging Face:', error);
+    console.error('Error initializing Gemini API:', error);
     chrome.storage.local.set({ 
-      error: `Failed to initialize Hugging Face API: ${error.message}. Please check your config.env file and API key.`
+      error: `Failed to initialize Gemini API: ${error.message}. Please check your config.env file and API key.`
     });
   }
 };
 
-initializeHuggingFace();
+initializeGeminiAPI();
 
-// Create context menu items
+// Create context menu item
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === 'CREATE_CONTEXT_MENU') {
-    chrome.contextMenus.removeAll(() => {
-      chrome.contextMenus.create({
-        id: 'summarizeApi',
-        title: 'Summarize API Documentation',
-        contexts: ['selection']
-      });
-      chrome.contextMenus.create({
-        id: 'askQuestion',
-        title: 'Ask a Question About Selection',
-        contexts: ['selection']
-      });
+    chrome.contextMenus.create({
+      id: 'summarizeApi',
+      title: 'Summarize API Documentation',
+      contexts: ['selection', 'page']
     });
   } else if (request.type === 'SUMMARIZE_TEXT') {
     summarizeText(request.text)
@@ -52,65 +47,55 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       .catch(error => sendResponse({ error: error.message }));
     return true;
   } else if (request.type === 'CHAT_MESSAGE') {
-    handleChatMessage(request.message, request.context || '')
+    handleChatMessage(request.message, request.context)
       .then(response => sendResponse({ response }))
       .catch(error => sendResponse({ error: error.message }));
-    return true;
-  } else if (request.type === 'COPY_SUMMARY') {
-    try {
-      navigator.clipboard.writeText(request.text);
-      sendResponse({ success: true });
-    } catch (error) {
-      sendResponse({ error: 'Failed to copy text to clipboard' });
-    }
     return true;
   }
 });
 
 // Handle context menu clicks
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (!tab?.id) return;
-
-  if (info.menuItemId === 'summarizeApi') {
+  if (info.menuItemId === 'summarizeApi' && tab?.id) {
     chrome.tabs.sendMessage(tab.id, { type: 'GET_SELECTION' }, async (response) => {
       if (response && response.text) {
         try {
           const summary = await summarizeText(response.text);
-          chrome.storage.local.set({ 
-            summary,
-            originalText: response.text,
-            timestamp: new Date().toISOString()
-          });
+          chrome.storage.local.set({ summary });
         } catch (error) {
           console.error('Error summarizing text:', error);
           chrome.storage.local.set({ error: error.message });
         }
       }
     });
-  } else if (info.menuItemId === 'askQuestion') {
-    chrome.tabs.sendMessage(tab.id, { type: 'GET_SELECTION' }, (response) => {
-      if (response && response.text) {
-        chrome.storage.local.set({ 
-          selectedText: response.text,
-          timestamp: new Date().toISOString()
-        });
-      }
-    });
   }
 });
 
-// Function to summarize text using BART model
-const BACKEND_URL = 'http://localhost:8000';
-
-// Function to summarize text using our FastAPI backend
+// Function to summarize text using Gemini API
 async function summarizeText(text: string): Promise<string> {
   try {
-    const response = await fetch(`${BACKEND_URL}/summarize`, {
+    if (!apiKey) {
+      throw new Error('Gemini API key not initialized');
+    }
+
+    const response = await fetch(`${API_CONFIG.summarizeEndpoint}?key=${apiKey}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ text })
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: `Summarize the following API documentation in a concise and informative way. Focus on the main functionality, parameters, and usage examples:\n\n${text}`
+          }]
+        }],
+        generationConfig: {
+          temperature: API_CONFIG.temperature,
+          topP: API_CONFIG.topP,
+          topK: API_CONFIG.topK,
+          maxOutputTokens: API_CONFIG.maxOutputTokens,
+        }
+      })
     });
 
     if (!response.ok) {
@@ -118,22 +103,54 @@ async function summarizeText(text: string): Promise<string> {
     }
 
     const result = await response.json();
-    return result.summary;
+    return result.candidates[0].content.parts[0].text;
   } catch (error) {
-    console.error('Error calling summarize API:', error);
+    console.error('Error calling Gemini API for summarization:', error);
     throw error;
   }
 }
 
-// Function to handle chat messages using our FastAPI backend
-async function handleChatMessage(message: string, context: string = ''): Promise<string> {
+// Store page context
+let currentPageContext = '';
+
+// Function to extract and store page context
+async function extractPageContext(tabId: number) {
   try {
-    const response = await fetch(`${BACKEND_URL}/chat`, {
+    const response = await chrome.tabs.sendMessage(tabId, { type: 'GET_PAGE_CONTEXT' });
+    if (response && response.context) {
+      currentPageContext = response.context;
+      chrome.storage.local.set({ pageContext: currentPageContext });
+    }
+  } catch (error) {
+    console.error('Error extracting page context:', error);
+  }
+}
+
+// Function to handle chat messages using Gemini API
+async function handleChatMessage(message: string, context: string): Promise<string> {
+  try {
+    if (!apiKey) {
+      throw new Error('Gemini API key not initialized');
+    }
+
+    const response = await fetch(`${API_CONFIG.chatEndpoint}?key=${apiKey}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ message, context })
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: `You are an API documentation assistant. Use the following API documentation context to answer the user's question. If you can't answer based on the context, say so politely.\n\nAPI Documentation Context:\n${context}\n\nUser Question: ${message}`
+          }]
+        }],
+        generationConfig: {
+          temperature: API_CONFIG.temperature,
+          topP: API_CONFIG.topP,
+          topK: API_CONFIG.topK,
+          maxOutputTokens: API_CONFIG.maxOutputTokens,
+        }
+      })
     });
 
     if (!response.ok) {
@@ -141,28 +158,19 @@ async function handleChatMessage(message: string, context: string = ''): Promise
     }
 
     const result = await response.json();
-    return result.response;
+    return result.candidates[0].content.parts[0].text;
   } catch (error) {
-    console.error('Error calling chat API:', error);
+    console.error('Error calling Gemini API for chat:', error);
     throw error;
   }
 }
 
-// Store chat history in chrome.storage.local
-const updateChatHistory = async (message: string, response: string) => {
-  try {
-    const { chatHistory = [] } = await chrome.storage.local.get('chatHistory');
-    const updatedHistory = [
-      ...chatHistory,
-      { 
-        message, 
-        response, 
-        timestamp: new Date().toISOString() 
-      }
-    ].slice(-50); // Keep last 50 messages
-    
-    await chrome.storage.local.set({ chatHistory: updatedHistory });
-  } catch (error) {
-    console.error('Error updating chat history:', error);
+// Listen for chat messages from the popup
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.type === 'CHAT_MESSAGE') {
+    handleChatMessage(request.message, request.context)
+      .then(response => sendResponse({ response }))
+      .catch(error => sendResponse({ error: error.message }));
+    return true;
   }
-};
+});

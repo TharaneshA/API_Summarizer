@@ -28,9 +28,7 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['Poppins', 'Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
-        inter: ['Inter', 'system-ui', 'sans-serif'],
-        poppins: ['Poppins', 'system-ui', 'sans-serif']
+        sans: ['Inter var', 'sans-serif']
       },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-in-out',

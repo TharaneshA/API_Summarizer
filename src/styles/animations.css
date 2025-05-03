@@ -1,0 +1,62 @@
+@keyframes gradientBg {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 5px rgba(147, 51, 234, 0.2); }
+  50% { box-shadow: 0 0 15px rgba(147, 51, 234, 0.4); }
+  100% { box-shadow: 0 0 5px rgba(147, 51, 234, 0.2); }
+}
+
+@keyframes slideIn {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fadeScale {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.gradient-bg {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #1a1a2e 100%);
+}
+
+.modern-card {
+  @apply bg-gray-800 border border-gray-700 p-4;
+  animation: fadeScale 0.3s ease-out;
+}
+
+.modern-button {
+  @apply px-4 py-2 bg-purple-600 text-white font-medium text-sm transition-all duration-300;
+  background: linear-gradient(45deg, #6b21a8, #7e22ce);
+  background-size: 200% 200%;
+  animation: gradientBg 4s ease infinite;
+}
+
+.modern-button:hover {
+  @apply transform scale-105;
+  animation: pulseGlow 2s infinite;
+}
+
+.modern-input {
+  @apply w-full px-4 py-2 bg-gray-800 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-colors duration-300;
+}
+
+.animate-slide-up {
+  animation: slideIn 0.4s ease-out;
+}
+
+.animate-fade-in {
+  animation: fadeScale 0.3s ease-out;
+}
+
+.w-popup {
+  width: 400px;
+}
+
+.h-popup {
+  height: 600px;
+}

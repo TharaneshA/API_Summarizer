@@ -1,8 +1,10 @@
+/// <reference path="./types/window.d.ts" />
+
 // Add styles for text selection and search highlight
 const style = document.createElement('style');
 style.textContent = `
 ::selection {
-  background-color: rgba(92, 124, 255, 0.4);
+  background-color: rgba(147, 51, 234, 0.4);
   color: inherit;
   text-shadow: none;
 }
@@ -27,13 +29,49 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
+// Store selected text
+let lastSelectedText = '';
+
+// Update selected text when selection changes and notify popup
+document.addEventListener('selectionchange', () => {
+  const selection = window.getSelection();
+  if (selection) {
+    const newSelectedText = selection.toString().trim();
+    if (newSelectedText !== lastSelectedText) {
+      lastSelectedText = newSelectedText;
+      // Notify the popup about the new selection
+      chrome.runtime.sendMessage({
+        type: 'SELECTION_UPDATED',
+        text: lastSelectedText
+      });
+    }
+  }
+});
+
 // Initialize message listener when the content script loads
 let isListenerInitialized = false;
 
 function initializeMessageListener() {
   if (!isListenerInitialized) {
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-      if (request.type === 'SEARCH_API_DOCS') {
+      if (request.type === 'GET_SELECTION') {
+        // Get the selected text from the page
+        let selectedText = '';
+        const selection = window.getSelection();
+        
+        if (selection && selection.rangeCount > 0) {
+          const range = selection.getRangeAt(0);
+          if (range.toString().trim()) {
+            selectedText = range.toString();
+          } else {
+            // If no text is currently selected, use the last selected text
+            selectedText = lastSelectedText;
+          }
+        }
+
+        sendResponse({ text: selectedText.trim() });
+        return true;
+      } else if (request.type === 'SEARCH_API_DOCS') {
         const { searchQuery } = request;
         try {
           const results = searchInPage(searchQuery);
@@ -69,27 +107,82 @@ function initializeMessageListener() {
         clearHighlights();
         sendResponse({ success: true });
         return true;
-      } else if (request.type === 'GET_SELECTION') {
-        // Get the selected text from the page
-        let selectedText = '';
-        const selection = window.getSelection();
-        
-        if (selection && selection.rangeCount > 0) {
-          const range = selection.getRangeAt(0);
-          if (range.toString().trim()) {
-            // Get the text content directly without HTML
-            selectedText = range.toString();
-          }
-        }
-
-        // Don't default to page content when no text is selected
-        // Just return the empty string to show "No text selected" message
-
-        sendResponse({ text: selectedText.trim() });
+      } else if (request.type === 'GET_PAGE_CONTEXT') {
+        const context = extractApiDocContent();
+        sendResponse({ context });
         return true;
       }
       return true; // Required for async response
     });
+
+    // Function to extract API documentation content from the page
+    function extractApiDocContent(): string {
+      // Initialize content array to store relevant sections
+      const contentParts: string[] = [];
+
+      // Extract page title and metadata
+      const title = document.title;
+      const metaDescription = document.querySelector('meta[name="description"]')?.getAttribute('content') || '';
+      contentParts.push(`Title: ${title}\n${metaDescription}\n`);
+
+      // Extract main content area (common API doc selectors)
+      const mainSelectors = [
+        'main',
+        'article',
+        '.content',
+        '.documentation',
+        '.api-content',
+        '.markdown-body'
+      ];
+
+      let mainContent = null;
+      for (const selector of mainSelectors) {
+        mainContent = document.querySelector(selector);
+        if (mainContent) break;
+      }
+
+      if (mainContent) {
+        // Extract headings and their content
+        const headings = mainContent.querySelectorAll('h1, h2, h3');
+        headings.forEach(heading => {
+          const section = extractSectionContent(heading);
+          if (section) contentParts.push(section);
+        });
+
+        // Extract code examples
+        const codeBlocks = mainContent.querySelectorAll('pre code, .highlight');
+        codeBlocks.forEach(block => {
+          contentParts.push(`Code Example:\n${block.textContent}\n`);
+        });
+
+        // Extract API endpoints and parameters
+        const endpoints = mainContent.querySelectorAll('.endpoint, .api-endpoint, .method');
+        endpoints.forEach(endpoint => {
+          contentParts.push(`API Endpoint:\n${endpoint.textContent}\n`);
+        });
+      }
+
+      // Combine all content parts with proper spacing
+      return contentParts.join('\n');
+    }
+
+    // Helper function to extract section content
+    function extractSectionContent(heading: Element): string | null {
+      const title = heading.textContent?.trim();
+      if (!title) return null;
+
+      let content = '';
+      let element = heading.nextElementSibling;
+
+      while (element && !element.matches('h1, h2, h3')) {
+        if (element.textContent?.trim()) {
+          content += element.textContent.trim() + '\n';
+        }
+        element = element.nextElementSibling;
+      }
+
+      return content ? `${title}\n${content}` : null;
+    }
 
     // Add context menu item
     chrome.runtime.sendMessage({ type: 'CREATE_CONTEXT_MENU' });
@@ -114,7 +207,7 @@ function searchInPage(searchQuery: string) {
     if (window.find) {
       // Save current selection to restore later
       const selection = window.getSelection();
-      let originalRange = null;
+      let originalRange: Range | null = null;
       if (selection && selection.rangeCount > 0) {
         originalRange = selection.getRangeAt(0).cloneRange();
       }
@@ -140,7 +233,7 @@ function searchInPage(searchQuery: string) {
                             findOptions.searchInFrames, findOptions.showDialog);
       
       let resultIndex = 0;
-      let firstMatch = null;
+      let firstMatch: FirstMatch | null = null;
       
       // If found, create our custom highlight
       while (found && resultIndex < 100) { // Limit to prevent infinite loops
