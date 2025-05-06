@@ -1,8 +1,18 @@
-// Google Gemini API Configuration
+// API Key
 export const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 
+// API Configuration Types
+interface ApiConfig {
+  summarizeEndpoint: string;
+  chatEndpoint: string;
+  maxOutputTokens: number;
+  temperature: number;
+  topP: number;
+  topK: number;
+}
+
 // API Endpoints and Settings
-export const API_CONFIG = {
+export const API_CONFIG: ApiConfig = {
   summarizeEndpoint: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent',
   chatEndpoint: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent',
   maxOutputTokens: 1024,
@@ -12,6 +22,6 @@ export const API_CONFIG = {
 };
 
 // Validate API key
-export function validateApiKey(): boolean {
+export function validateApiKeys(): boolean {
   return GEMINI_API_KEY.length > 0;
 }

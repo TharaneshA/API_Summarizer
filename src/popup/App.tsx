@@ -71,7 +71,6 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'summary' | 'chat' | 'search'>('summary');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-  const [pageContext, setPageContext] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Listen for selection updates from content script
@@ -264,14 +263,12 @@ const App: React.FC = () => {
     setLoading(true);
 
     try {
-      // Get stored page context and send with chat message
-      chrome.storage.local.get(['pageContext'], (result) => {
-        chrome.runtime.sendMessage(
-          { 
-            type: 'CHAT_MESSAGE', 
-            message: input,
-            context: result.pageContext || ''
-          },
+      // Send chat message with Gemini's built-in knowledge
+      chrome.runtime.sendMessage(
+        { 
+          type: 'CHAT_MESSAGE', 
+          message: input
+        },
         (response) => {
           if (response && response.response) {
             setMessages(prev => [...prev, { role: 'assistant', content: response.response }]);
