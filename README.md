@@ -1,14 +1,19 @@
 # API Summarizer Chrome Extension
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/TharaneshA/API_Summarizer/main/icons/icon.jpg" width="400" alt="API Summarizer Icon"/>
+  <img src="https://github.com/user-attachments/assets/87e10646-a43a-423a-b2bc-98600b6880d9" alt="API Summarizer Demo" />
 </p>
+
 
 <h3 align="center">Simplify API Documentation Instantly</h3>
 
 ## Overview
 
 API Summarizer is a powerful Chrome extension designed to enhance your experience with API documentation. It uses Google's Gemini AI to summarize complex API documentation, making it easier to understand and navigate. The extension also provides a chat interface to ask questions about the documentation and a search feature to quickly find specific information.
+
+<h2>API Summarizer Demo</h2>
+
+https://github.com/user-attachments/assets/d129c36d-df07-4405-a48a-9cc5465c50a2
 
 ## Features
 
@@ -70,6 +75,9 @@ API Summarizer is a powerful Chrome extension designed to enhance your experienc
    - Select text and generate summaries
    - Search within the documentation
    - Ask questions about the API
+  
+   ![image](https://github.com/user-attachments/assets/1e944132-b9d5-4d2e-aab5-0145b0f87ca4)
+
 
 ## Project Structure
 
